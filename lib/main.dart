@@ -1,6 +1,10 @@
+import 'package:codigo4_states2/bloc/drop_bloc.dart';
+import 'package:codigo4_states2/bloc/drop_event.dart';
+import 'package:codigo4_states2/bloc/drop_state.dart';
 import 'package:codigo4_states2/person.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   runApp(MyApp());
@@ -9,8 +13,13 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomePage(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => DropBloc()),
+      ],
+      child: MaterialApp(
+        home: HomePage(),
+      ),
     );
   }
 }
@@ -60,6 +69,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    context.read<DropBloc>().add(DropInitEvent());
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -81,45 +92,86 @@ class _HomePageState extends State<HomePage> {
           "Listado general",
         ),
       ),
-      body: Column(
-        children: [
-          CarouselSlider(
-            items: imgList.map((e) => Image.network(e)).toList(),
-            // items: [
-            //   Text("Hola"),
-            //   Text("Hola 2"),
-            //   Text("Hola 3"),
-            //   Text("Hola 4"),
-            // ],
-            carouselController: _controller,
-            options: CarouselOptions(
-                autoPlay: true,
-                enlargeCenterPage: false,
-                aspectRatio: 1,
-                onPageChanged: (index, reason) {
-                  setState(() {
-                    _current = index;
-                  });
-                }),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: imgList.asMap().entries.map((entry) {
-              return GestureDetector(
-                onTap: () => _controller.animateToPage(entry.key),
-                child: Container(
-                  width: 12.0,
-                  height: 12.0,
-                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _current == entry.key ? Colors.red : Colors.black,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+      // body: Column(
+      //   children: [
+      //     CarouselSlider(
+      //       items: imgList.map((e) => Image.network(e)).toList(),
+      //       // items: [
+      //       //   Text("Hola"),
+      //       //   Text("Hola 2"),
+      //       //   Text("Hola 3"),
+      //       //   Text("Hola 4"),
+      //       // ],
+      //       carouselController: _controller,
+      //       options: CarouselOptions(
+      //           autoPlay: true,
+      //           enlargeCenterPage: false,
+      //           aspectRatio: 1,
+      //           onPageChanged: (index, reason) {
+      //             setState(() {
+      //               _current = index;
+      //             });
+      //           }),
+      //     ),
+      //     Row(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: imgList.asMap().entries.map((entry) {
+      //         return GestureDetector(
+      //           onTap: () => _controller.animateToPage(entry.key),
+      //           child: Container(
+      //             width: 12.0,
+      //             height: 12.0,
+      //             margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+      //             decoration: BoxDecoration(
+      //               shape: BoxShape.circle,
+      //               color: _current == entry.key ? Colors.red : Colors.black,
+      //             ),
+      //           ),
+      //         );
+      //       }).toList(),
+      //     ),
+      //   ],
+      // ),
+      body: BlocBuilder<DropBloc, DropState>(
+        builder: (context, DropState state) {
+          if (state is DropStateInit) {
+            return DropdownButton(
+              value: state.value,
+              items: state.data
+                  .map(
+                    (e) => DropdownMenuItem(
+                      child: Text(e),
+                      value: e,
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                context.read<DropBloc>().add(
+                      DropSelect1Event(value: value!),
+                    );
+              },
+            );
+          }
+          if (state is DropState1) {
+            return DropdownButton(
+              value: state.value,
+              items: state.data
+                  .map(
+                    (e) => DropdownMenuItem(
+                      child: Text(e),
+                      value: e,
+                    ),
+                  )
+                  .toList(),
+              onChanged: (String? value) {
+                context.read<DropBloc>().add(
+                      DropSelect1Event(value: value!),
+                    );
+              },
+            );
+          }
+          return SizedBox();
+        },
       ),
     );
   }
